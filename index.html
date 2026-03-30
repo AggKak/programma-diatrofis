@@ -54,7 +54,7 @@
 
 <div class="container">
     <div class="header-section">
-        <h1>🗓️ Κοινό Πλάνο Διατροφής</h1>
+        <h1>🗓️ Εβδομαδιαίο Πλάνο Διατροφής</h1>
         <div style="display: flex; justify-content: center; gap: 10px;">
             <button class="btn-export" onclick="exportData()">📥 Εξαγωγή (Download)</button>
             <button class="btn-import-btn" onclick="document.getElementById('fileInput').click()">📤 Εισαγωγή (Upload)</button>
@@ -314,87 +314,3 @@
                 });
             });
         });
-    }
-
-    function renderTable() {
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
-        let lastDay = "";
-
-        dietData.forEach((row, index) => {
-            if (row.day !== lastDay) {
-                const dayRow = document.createElement('tr');
-                dayRow.className = "day-row-header";
-                dayRow.innerHTML = `<td colspan="3" class="day-header">${row.day}</td>`;
-                tbody.appendChild(dayRow);
-                lastDay = row.day;
-            }
-
-            const tr = document.createElement('tr');
-            tr.setAttribute('data-meal', row.type);
-            tr.innerHTML = `
-                <td class="meal-type">${row.type}</td>
-                <td class="col-a" onclick="openModal(${index}, 'personA')">
-                    <span class="meal-title">${row.personA.title}</span>
-                    <div class="ingredients-preview">${row.personA.ingredients}</div>
-                </td>
-                <td class="col-b" onclick="openModal(${index}, 'personB')">
-                    <span class="meal-title">${row.personB.title}</span>
-                    <div class="ingredients-preview">${row.personB.ingredients}</div>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function openModal(index, person) {
-        currentCell = { index, person };
-        const data = dietData[index][person];
-        document.getElementById('modalTitle').innerText = `${dietData[index].day} - ${dietData[index].type}`;
-        document.getElementById('editTitle').value = data.title;
-        document.getElementById('editIngredients').value = data.ingredients;
-        document.getElementById('editExecution').value = data.execution;
-        document.getElementById('detailsModal').style.display = "block";
-    }
-
-    function closeModal() { document.getElementById('detailsModal').style.display = "none"; }
-
-    function updateMeal() {
-        const title = document.getElementById('editTitle').value || "Προσθήκη";
-        const ingredients = document.getElementById('editIngredients').value;
-        const execution = document.getElementById('editExecution').value;
-        
-        dietData[currentCell.index][currentCell.person] = { title, ingredients, execution };
-        localStorage.setItem('twoPersonDietV3', JSON.stringify(dietData));
-        renderTable();
-        filterTable(); // Διατήρηση του φίλτρου μετά την αποθήκευση
-        closeModal();
-    }
-
-    function filterTable() {
-        const val = document.getElementById('mealFilter').value;
-        const allRows = document.querySelectorAll('#tableBody tr');
-        let currentDayHeader = null;
-        let anyVisibleInDay = false;
-
-        allRows.forEach(row => {
-            if (row.classList.contains('day-row-header')) {
-                currentDayHeader = row;
-                row.classList.add('hidden'); // Κρύψε προσωρινά όλα τα headers
-            } else {
-                if (val === 'all' || row.getAttribute('data-meal') === val) {
-                    row.classList.remove('hidden');
-                    if (currentDayHeader) currentDayHeader.classList.remove('hidden'); // Εμφάνισε το header αν υπάρχει έστω και ένα γεύμα
-                } else {
-                    row.classList.add('hidden');
-                }
-            }
-        });
-    }
-
-    window.onclick = (e) => { if (e.target == document.getElementById('detailsModal')) closeModal(); }
-    renderTable();
-</script>
-
-</body>
-</html>
