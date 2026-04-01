@@ -3,64 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Το Πλάνο Μου</title>
+    <title>Shared Diet Planner - Import/Export Edition</title>
     <style>
-        /* CSS: Εδώ ορίζουμε την εμφάνιση */
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
-        .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        h2 { color: #333; text-align: center; }
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { background-color: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background-color: #218838; }
-        .meal-item { background: #f9f9f9; padding: 10px; border-left: 5px solid #28a745; margin-top: 10px; display: flex; justify-content: space-between; }
-        .day-label { font-weight: bold; color: #555; }
+        :root { 
+            --primary: #2ecc71; --personA: #ebf5fb; --personB: #fef9e7; 
+            --dark: #2c3e50; --border: #dcdde1; --accent: #e67e22;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f6fa; margin: 0; padding: 10px; }
+        .container { max-width: 1200px; margin: auto; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        
+        .header-section { background: white; padding: 20px; border-bottom: 2px solid #f1f1f1; text-align: center; }
+        
+        .controls { 
+            display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 15px; 
+            background: #fff; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #eee;
+        }
+        
+        select, button { padding: 10px 18px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-weight: bold; font-size: 14px; }
+        .btn-export { background: var(--accent); color: white; border: none; }
+        .btn-import-btn { background: var(--primary); color: white; border: none; }
+        .btn-print { background: var(--dark); color: white; border: none; }
+
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .day-header { background: var(--dark) !important; color: white; text-align: center; padding: 12px; font-size: 1.1em; letter-spacing: 1px; }
+        .meal-type { width: 110px; font-weight: bold; text-align: center; background: #fff; border-right: 2px solid #f1f1f1; color: #7f8c8d; }
+        
+        .col-a { background: var(--personA); border-right: 2px solid #d6eaf8; width: 42%; }
+        .col-b { background: var(--personB); width: 42%; }
+        
+        td { padding: 15px; vertical-align: top; cursor: pointer; border-bottom: 1px solid #f1f1f1; min-height: 90px; transition: 0.2s; }
+        td:hover { opacity: 0.8; }
+        
+        .meal-title { font-weight: bold; display: block; color: #2c3e50; margin-bottom: 4px; }
+        .ing-preview { font-size: 0.85em; color: #636e72; white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); }
+        .modal-content { background: white; margin: 5% auto; padding: 25px; width: 90%; max-width: 600px; border-radius: 15px; max-height: 85vh; overflow-y: auto; }
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0 15px 0; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; box-sizing: border-box; }
+        textarea { height: 100px; resize: vertical; }
+        .btn-save-modal { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
+
+        .hidden { display: none; }
+        #fileInput { display: none; }
+
+        @media print { .controls, .header-section, .modal { display: none !important; } .container { box-shadow: none; } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🍴 Προγραμματιστής Γευμάτων</h2>
-    
-    <input type="text" id="recipeInput" placeholder="Τι θα φάμε;">
-    <select id="dayInput">
-        <option value="Δευτέρα">Δευτέρα</option>
-        <option value="Τρίτη">Τρίτη</option>
-        <option value="Τετάρτη">Τετάρτη</option>
-        <option value="Πέμπτη">Πέμπτη</option>
-        <option value="Παρασκευή">Παρασκευή</option>
-        <option value="Σάββατο">Σάββατο</option>
-        <option value="Κυριακή">Κυριακή</option>
-    </select>
-    <button onclick="addMeal()">Προσθήκη στο Πρόγραμμα</button>
-
-    <div id="plannerList">
-        <h3>Το πλάνο της εβδομάδας:</h3>
+    <div class="header-section">
+        <h1>🗓️ Κοινό Πλάνο Διατροφής</h1>
+        <div style="display: flex; justify-content: center; gap: 10px;">
+            <button class="btn-export" onclick="exportData()">📥 Εξαγωγή (Download)</button>
+            <button class="btn-import-btn" onclick="document.getElementById('fileInput').click()">📤 Εισαγωγή (Upload)</button>
+            <input type="file" id="fileInput" accept=".json" onchange="importData(event)">
         </div>
+    </div>
+
+    <div class="controls">
+        <select id="mealFilter" onchange="filterTable()">
+            <option value="all">🔍 Προβολή: Όλα</option>
+            <option value="Πρωινό">Πρωινό</option>
+            <option value="Δεκατιανό">Δεκατιανό</option>
+            <option value="Μεσημεριανό">Μεσημεριανό</option>
+            <option value="Απογευματινό">Απογευματινό</option>
+            <option value="Βραδινό">Βραδινό</option>
+        </select>
+        <button class="btn-print" onclick="window.print()">🖨️ Εκτύπωση</button>
+    </div>
+
+    <table id="dietTable">
+        <thead>
+            <tr>
+                <th style="width:110px">Γεύμα</th>
+                <th>👤 Άτομο Α</th>
+                <th>👤 Άτομο Β</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+<div id="detailsModal" class="modal">
+    <div class="modal-content">
+        <span style="float:right; cursor:pointer; font-size:28px;" onclick="closeModal()">&times;</span>
+        <h2 id="modalTitle">Επεξεργασία</h2>
+        <label>Όνομα Γεύματος:</label>
+        <input type="text" id="editTitle">
+        <label>Υλικά & Δοσολογία (Λίστα):</label>
+        <textarea id="editIngredients"></textarea>
+        <label>Εκτέλεση Συνταγής:</label>
+        <textarea id="editExecution"></textarea>
+        <button class="btn-save-modal" onclick="updateMeal()">✅ Αποθήκευση</button>
+    </div>
 </div>
 
 <script>
-    // JavaScript: Εδώ ορίζουμε τη λειτουργία
-    function addMeal() {
-        const recipe = document.getElementById('recipeInput').value;
-        const day = document.getElementById('dayInput').value;
-        const list = document.getElementById('plannerList');
+    const days = ["ΔΕΥΤΕΡΑ", "ΤΡΙΤΗ", "ΤΕΤΑΡΤΗ", "ΠΕΜΠΤΗ", "ΠΑΡΑΣΚΕΥΗ", "ΣΑΒΒΑΤΟ", "ΚΥΡΙΑΚΗ"];
+    const meals = ["Πρωινό", "Δεκατιανό", "Μεσημεριανό", "Απογευματινό", "Βραδινό"];
+    let dietData = JSON.parse(localStorage.getItem('sharedDietFileSys')) || [];
 
-        if (recipe === "") {
-            alert("Παρακαλώ γράψε μια συνταγή!");
-            return;
-        }
-
-        // Δημιουργία του στοιχείου στη λίστα
-        const div = document.createElement('div');
-        div.className = 'meal-item';
-        div.innerHTML = `<span class="day-label">${day}:</span> <span>${recipe}</span>`;
-        
-        list.appendChild(div);
-
-        // Καθαρισμός του πεδίου
-        document.getElementById('recipeInput').value = "";
+    // Αρχικοποίηση αν είναι η πρώτη φορά
+    if (dietData.length === 0) {
+        days.forEach(day => {
+            meals.forEach(meal => {
+                dietData.push({
+                    day, type: meal,
+                    personA: { title: "Προσθήκη", ingredients: "", execution: "" },
+                    personB: { title: "Προσθήκη", ingredients: "", execution: "" }
+                });
+            });
+        });
     }
-</script>
 
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        let lastDay = "";
+
+        dietData.forEach((row, index) => {
+            if (row.day !== lastDay) {
+                const tr = document.createElement('tr');
+                tr.className = "day-row-header";
+                tr.innerHTML = `<td colspan="3" class="day-header">${row.day}</td>`;
+                tbody.appendChild(tr);
+                lastDay = row.day;
+            }
+            const tr = document.createElement('tr');
+            tr.setAttribute('data-meal', row.type);
+            tr.innerHTML = `
+                <td class="meal-type">${row.type}</td>
+                <td class="col-a" onclick="openModal(${index}, 'personA')">
+                    <span class="meal-title">${row.personA.title}</span>
+                    <div class="ing-preview">${row.personA.ingredients}</div>
+                </td>
+                <td class="col-b" onclick="openModal(${index}, 'personB')">
+                    <span class="meal-title">${row.personB.title}</span>
+                    <div class="ing-preview">${row.personB.ingredients}</div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // --- ΛΕΙΤΟΥΡΓΙΕΣ ΑΡΧΕΙΟΥ ---
+    function exportData() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dietData));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "my_diet_plan.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    }
+
+    function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if (Array.isArray(importedData)) {
+                    dietData = importedData;
+                    saveAndReload();
+                    alert("✅ Το πλάνο ενημερώθηκε επιτυχώς!");
+                }
+            } catch (err) {
+                alert("❌ Σφάλμα: Το αρχείο δεν είναι έγκυρο.");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // --- ΛΟΙΠΕΣ ΛΕΙΤΟΥΡΓΙΕΣ ---
+    let currentCell = null;
+    function openModal(index, person) {
+        currentCell = { index, person };
+        const data = dietData[index][person];
+        document.getElementById('modalTitle').innerText = `${dietData[index].day} - ${dietData[index].type}`;
+        document.getElementById('editTitle').value = data.title;
+        document.getElementById('editIngredients').value = data.ingredients;
+        document.getElementById('editExecution').value = data.execution;
+        document.getElementById('detailsModal').style.display = "block";
+    }
+
+    function updateMeal() {
+        dietData[currentCell.index][currentCell.person] = {
+            title: document.getElementById('editTitle').value || "Προσθήκη",
+            ingredients: document.getElementById('editIngredients').value,
+            execution: document.getElementById('editExecution').value
+        };
+        saveAndReload();
+        closeModal();
+    }
+
+    function saveAndReload() {
+        localStorage.setItem('sharedDietFileSys', JSON.stringify(dietData));
+        renderTable();
+        filterTable();
+    }
+
+    function closeModal() { document.getElementById('detailsModal').style.display = "none"; }
+    
+    function filterTable() {
+        const val = document.getElementById('mealFilter').value;
+        const rows = document.querySelectorAll('#tableBody tr');
+        let currentDayHeader = null;
+
+        rows.forEach(row => {
+            if (row.classList.contains('day-row-header')) {
+                currentDayHeader = row;
+                row.classList.add('hidden');
+            } else {
+                if (val === 'all' || row.getAttribute('data-meal') === val) {
+                    row.classList.remove('hidden');
+                    if(currentDayHeader) currentDayHeader.classList.remove('hidden');
+                } else {
+                    row.classList.add('hidden');
+                }
+            }
+        });
+    }
+
+    window.onclick = (e) => { if (e.target == document.getElementById('detailsModal')) closeModal(); }
+    renderTable();
+</script>
 </body>
 </html>
