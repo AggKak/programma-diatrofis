@@ -28,8 +28,15 @@
         .day-header { background: var(--dark) !important; color: white; text-align: center; padding: 12px; font-size: 1.1em; letter-spacing: 1px; }
         .meal-type { width: 150px; font-weight: bold; text-align: center; background: #fff; border-right: 2px solid #f1f1f1; color: #7f8c8d; }
         
-        .col-a { background: var(--personA); border-right: 2px solid #d6eaf8; width: 42%; }
-        .col-b { background: var(--personB); width: 42%; }
+        .col-a { 
+         background: var(--personA); 
+          border-right: 2px solid #d6eaf8; 
+         width: 38%; /* Μειώσαμε από 42% σε 38% */
+        }
+        .col-b { 
+        background: var(--personB); 
+        width: 38%; /* Μειώσαμε από 42% σε 38% */
+        }
         
         td { padding: 15px; vertical-align: top; cursor: pointer; border-bottom: 1px solid #f1f1f1; min-height: 90px; transition: 0.2s; }
         td:hover { opacity: 0.8; }
@@ -77,7 +84,7 @@
     <table id="dietTable">
         <thead>
             <tr>
-                <th style="width:110px">Γεύμα</th>
+                <th style="width:150px">Γεύμα</th>
                 <th>Γεωργία</th>
                 <th>Άγγελος</th>
             </tr>
