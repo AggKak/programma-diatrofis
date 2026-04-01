@@ -26,7 +26,7 @@
 
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         .day-header { background: var(--dark) !important; color: white; text-align: center; padding: 12px; font-size: 1.1em; letter-spacing: 1px; }
-        .meal-type { width: 110px; font-weight: bold; text-align: center; background: #fff; border-right: 2px solid #f1f1f1; color: #7f8c8d; }
+        .meal-type { width: 150px; font-weight: bold; text-align: center; background: #fff; border-right: 2px solid #f1f1f1; color: #7f8c8d; }
         
         .col-a { background: var(--personA); border-right: 2px solid #d6eaf8; width: 42%; }
         .col-b { background: var(--personB); width: 42%; }
@@ -78,8 +78,8 @@
         <thead>
             <tr>
                 <th style="width:110px">Γεύμα</th>
-                <th>👤 Άτομο Α</th>
-                <th>👤 Άτομο Β</th>
+                <th>Γεωργία</th>
+                <th>Άγγελος</th>
             </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -111,8 +111,8 @@
             meals.forEach(meal => {
                 dietData.push({
                     day, type: meal,
-                    personA: { title: "Προσθήκη", ingredients: "", execution: "" },
-                    personB: { title: "Προσθήκη", ingredients: "", execution: "" }
+                    personA: { title: "", ingredients: "", execution: "" },
+                    personB: { title: "", ingredients: "", execution: "" }
                 });
             });
         });
